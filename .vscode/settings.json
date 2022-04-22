@@ -1,0 +1,10 @@
+{
+  "workbench.colorTheme": "Monokai",
+  "coloredRegions.namedColors": {
+
+    "MyFavoriteColor": "rgba(79, 44, 115, 0.5)",
+    "CONSTRUCTOR": "rgba(241, 196, 15, 0.015)",
+    "Draw": "rgba(52, 152, 219, 0.04)",
+    "UpdatePhysics": "rgba(231, 76, 60, 0.04)"
+  }
+}
