@@ -12,7 +12,7 @@ long lastMillis;
 boolean restart = false;
 
 void settings(){
-    //size( 600, 600 );
+    //size( 700, 700 );
     fullScreen();
     noSmooth();
 }

@@ -192,15 +192,15 @@ class PaintEngine{
 
     public void DrawGameScore(){
         float x = gameSettings.GameWindowWidth() / 2;
-        float y = gameSettings.playAreaOffsetY / 2 + 10;
-        textSize( 40 );
-        DrawText( "SCORE: " + nf( gE.score, 3 ), x, y, 40, color( 210, 255 - this.fadeOutAlpha ) );
+        float y = gameSettings.playAreaOffsetY / 2;
+        int size = int( gameSettings.playAreaOffsetY / 2 ) + 10;
+        DrawText( "SCORE: " + nf( gE.score, 3 ), x, y, size, color( 210, 255 - this.fadeOutAlpha ) );
     }
 
     private void DrawText( String text, float x, float y, int size, color fillColor ){
         fill( 200 );
         noStroke();
-        textAlign( CENTER );
+        textAlign( CENTER, CENTER );
         fill( fillColor );
         textFont( this.mono, size );
         text( text, x, y );
@@ -243,7 +243,7 @@ class PaintEngine{
                 DrawText( "FINAL SCORE: " + nf( gE.score, 3 ), x, y, int(this.scoreTextSize), color( 255, this.scoreAlpha) );
 
                 if( this.drawRestart ){
-                    DrawText( "Press 'r' to restart with current settingss, or 'm' to return to the menu", x, y + 0.5f*y, 20, color( 255, this.startOverAlpha ) );
+                    DrawText( "Press 'r' to restart with current settingss, or 'm' to return to the menu", x, height - 0.1f*y, int(this.scoreTextSize/3), color( 255, this.startOverAlpha ) );
                 }
             }
         }
