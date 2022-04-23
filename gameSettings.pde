@@ -72,18 +72,18 @@ class GameSettings{
 
 
     // PROPERTIES
-    public int  GameWindowSize(){ return this.gameWindowSize; }
-    public void GameWindowSize( int gameWindowSize ){ this.gameWindowSize = gameWindowSize; }
+    public int      GameWindowSize(){ return this.gameWindowSize; }
+    public void     GameWindowSize( int gameWindowSize ){ this.gameWindowSize = gameWindowSize; }
     
-    public int  GameWindowWidth(){ return this.gameWindowWidth; }
-    public void GameWindowWidth( int gameWindowWidth ){ this.gameWindowWidth = gameWindowWidth; }
+    public int      GameWindowWidth(){ return this.gameWindowWidth; }
+    public void     GameWindowWidth( int gameWindowWidth ){ this.gameWindowWidth = gameWindowWidth; }
 
-    public int  GameClockRate(){ return this.gameClockRate; }
-    public void GameClockRate( int gameClockRate ){ this.gameClockRate = gameClockRate; }
+    public int      GameClockRate(){ return this.gameClockRate; }
+    public void     GameClockRate( int gameClockRate ){ this.gameClockRate = gameClockRate; }
     
     public boolean  LoopMovement(){ return this.loopMovement; }
     public void     LoopMovement( boolean loopMovement ){ this.loopMovement = loopMovement; }
     
-    public int  FruitsPerPlayArea(){ return this.fruitsPerPlayArea; }
-    public void FruitsPerPlayArea( int fruitsPerPlayArea ){ this.fruitsPerPlayArea = fruitsPerPlayArea; }
+    public int      FruitsPerPlayArea(){ return this.fruitsPerPlayArea; }
+    public void     FruitsPerPlayArea( int fruitsPerPlayArea ){ this.fruitsPerPlayArea = fruitsPerPlayArea; }
 }

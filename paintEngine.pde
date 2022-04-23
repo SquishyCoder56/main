@@ -6,8 +6,6 @@ class PaintEngine{
     private float snakeClockCycle;
     private int snakeFrame;
 
-    private int acceleration = 0;
-
     private int     countDown       = 3;
     private float   countDownSize   = gameSettings.playAreaSize/4 + gameSettings.playAreaSize/3;
     private float   countDownAlpha  = 0;
@@ -45,144 +43,17 @@ class PaintEngine{
         frame = 1;
     }
 
-    // Creating a countdown for when the game starts.
-    public void CountDown(){
-        if( millis() - this.lastStartUpdate > 30 ){
-            this.countDownSize  = Lerp( this.countDownSize, gameSettings.playAreaSize/4, 0.5f );
-            println( this.countDownSize );
-            this.countDownAlpha = Lerp( this.countDownSize, 255, 0.5f );
-
-            this.lastStartUpdate = millis();
-        }
-        if( millis() - this.lastStartTextUpdate > 1000 ){
-            this.countDown -= 1;
-
-            this.countDownSize = gameSettings.playAreaSize/4 + gameSettings.playAreaSize/3;
-            this.countDownAlpha = 0;
-
-            this.lastStartTextUpdate = millis();
-        }
-
-        if( this.countDown != 0 ){
-            fill( 0, 210 );
-            rect( gameSettings.playAreaOffsetX, gameSettings.playAreaOffsetY, gameSettings.playAreaSize, gameSettings.playAreaSize );
-            DrawText( 
-                str( this.countDown ),
-                float( width / 2 ), float( height / 2 ),
-                int( this.countDownSize ),
-                color( 255, 120, 120, this.countDownAlpha ) );
-        }
+    // Draws the game in action.
+    public void DrawGame(){
+        if( gameSettings.LoopMovement() )       { DrawPlayAreaOutOfBounds(); }
+        DrawPlayArea();
+        DrawEntities();
+        DrawGameScore();
+        if( gameStatus == GameStatus.STARTUP )  { DrawCountDown(); }
+        else if( gameStatus == GameStatus.GAMEOVER ) { DrawGameOver(); }
     }
-
-    //  ----    ----    Drawing Methods     ----    ----
-    public void DrawEntities( Entity_Snake snake, ArrayList<Entity> fruits, ArrayList<Entity_Sprite> sprites, float clockCycle, float snakeClockCycle, boolean pause ){      
-        this.currentFrame   = ceil( gameSettings.frames * clockCycle );         // Sets the current frame in sync with the gameClockCycle
-        this.snakeFrame     = ceil( gameSettings.frames * snakeClockCycle );    // Sets the current frmae in sync with the snakeClockCycle, as to only speed up the snake frame rate.
-        
-        // Making sure no "illegal" frames are created.
-        if( this.snakeFrame > 5 ){ this.snakeFrame = 5; }
-        if( this.snakeFrame < 1 ){ this.snakeFrame = 1; }
-
-        if( this.currentFrame > 5 ){ this.currentFrame = 5; }
-        if( this.currentFrame < 1 ){ this.currentFrame = 1; }
-
-        // Translating canvas and pushing matrix.
-        pushMatrix();
-        translate( gameSettings.playAreaOffsetX, gameSettings.playAreaOffsetY );
-
-        // Drawing all sprites and fruits.
-        for( Entity_Sprite e : sprites ){
-            e.Draw( this.currentFrame );
-        }
-        for( Entity e : fruits ){
-            e.Draw( this.currentFrame );
-        }
-
-        // Script for stopping snake at its current frame when game has paused.
-        frame = currentFrame;
-        if( pause ){
-            if( frame == 5 ){
-                frame = this.lastFrame;
-                stop = true;
-            }
-        }
-        else if( this.lastFrame == this.currentFrame ){
-            this.lastFrame = frame;
-            stop = false;
-        }
-
-        // Drawing snake, and if paused draws it at the last frame.
-        if( stop ){ 
-            snake.Draw( 5 );
-        }
-        else{
-            snake.Draw( snakeFrame );
-        }
-
-        // Draws a black border around the playarea.
-        stroke( 255 );
-        strokeWeight( 2 );
-        noFill();
-        rect( 0, 0, gameSettings.playAreaSize, gameSettings.playAreaSize );
     
-        popMatrix();
-        noTint();
-
-        if( !pause ){
-            this.lastFrame = currentFrame;
-            lastUpdate = millis();
-        }
-    }
-
-    // Methods for drawing the play area.
-    public void DrawPlayArea(){                                             // Draws the play area.
-        pushMatrix();
-
-        rectMode( CORNER );
-        translate( gameSettings.playAreaOffsetX, gameSettings.playAreaOffsetY );
-
-        // Draws checker-pattern playearea.
-        DrawPlayAreaBack( gameSettings.playAreaSize );
-        DrawPlayAreaSquares( gameSettings.squareSize, gameSettings.playAreaResolution );
-
-        popMatrix();
-    }
-
-    // Draws the backdrop of the play area. 
-    private void DrawPlayAreaBack( float size ){                            
-        pushMatrix();
-        fill( gameSettings.PLAYAREACOLOR );
-        noStroke();
-        rect( 0, 0, size, size );
-        popMatrix();
-    }
-
-    private void DrawPlayAreaSquares( float size, float res ){              // Draws the checkboard pattern of squares on the play area.
-        
-        pushMatrix();
-
-        for( int i = 1; i <= res; i++ ){
-            pushMatrix();
-            for( int j = 1; j <= res; j++ ){
-                if( i % 2 == 0 && j % 2 == 0 ){         // CHECKS IF THE COORDINATES ARE EVEN.
-                    DrawPlayAreaSquare( size );
-                }
-                else if( i % 2 != 0 && j % 2 != 0 ){    // CHECKS IF THE COORDINATES ARE UNEVEN.
-                    DrawPlayAreaSquare( size );
-                }
-
-                translate( size, 0 );
-            }
-            popMatrix();
-
-            translate( 0, size );
-        }
-
-        popMatrix();
-    }
-
     private void DrawPlayAreaOutOfBounds(){
-        pushMatrix();
         for( int i = 0; i < gameSettings.playAreaResolution; i++ ){
             for( int j = 0; j < 3; j++ ){
                 if( i % 2 !=  j % 2 ){ continue; }
@@ -211,34 +82,148 @@ class PaintEngine{
                 );
             }
         }
+    }
+
+
+    // Methods for drawing the play area.
+    private void DrawPlayArea(){                                             // Draws the play area.
+        float   size    = gameSettings.playAreaSize;
+        float   sSize   = gameSettings.squareSize;
+        int     res     = gameSettings.playAreaResolution;
+        pushMatrix();
+
+        rectMode( CORNER );
+        translate( gameSettings.playAreaOffsetX, gameSettings.playAreaOffsetY );
+
+        // Draws the back of the play area
+        fill( gameSettings.PLAYAREACOLOR );
+        noStroke();
+        rect( 0, 0, size, size );
+
+        pushMatrix();
+        for( int i = 1; i <= res; i++ ){
+            pushMatrix();
+            for( int j = 1; j <= res; j++ ){
+                if( i % 2 == 0 && j % 2 == 0 ){         // CHECKS IF THE COORDINATES ARE EVEN.
+                    DrawPlayAreaSquare( sSize );
+                }
+                else if( i % 2 != 0 && j % 2 != 0 ){    // CHECKS IF THE COORDINATES ARE UNEVEN.
+                    DrawPlayAreaSquare( sSize );
+                }
+
+                translate( sSize, 0 );
+            }
+            popMatrix();
+
+            translate( 0, sSize );
+        }
+        popMatrix();
+
         popMatrix();
     }
 
     private void DrawPlayAreaSquare( float size ){                          // Draws one square in the play area.
-        pushMatrix();
         fill( gameSettings.PLAYSQUARECOLOR );
         noStroke();
         rect( 0, 0, size, size );
-        popMatrix();
     }
 
-    public void DrawGameScore(){
+    private void DrawEntities(){
+        this.currentFrame   = ceil( gameSettings.frames * gE.phE.ReturnClockCycle() );         // Sets the current frame in sync with the gameClockCycle
+        this.snakeFrame     = ceil( gameSettings.frames * gE.phE.ReturnSnakeClockCycle() );    // Sets the current frmae in sync with the snakeClockCycle, as to only speed up the snake frame rate.
+        
+        // Making sure no "illegal" frames are created.
+        if( this.snakeFrame > 5 ){ this.snakeFrame = 5; }
+        if( this.snakeFrame < 1 ){ this.snakeFrame = 1; }
+
+        if( this.currentFrame > 5 ){ this.currentFrame = 5; }
+        if( this.currentFrame < 1 ){ this.currentFrame = 1; }
+
+        // Translating canvas and pushing matrix.
+        pushMatrix();
+        translate( gameSettings.playAreaOffsetX, gameSettings.playAreaOffsetY );
+
+        // Drawing all sprites and fruits.
+        for( Entity_Sprite e : gE.sprites ){
+            e.Draw( this.currentFrame );
+        }
+        for( Entity e : gE.fruits ){
+            e.Draw( this.currentFrame );
+        }
+
+        // Script for stopping snake at its current frame when game has paused.
+        frame = currentFrame;
+        if( gE.pause ){
+            if( frame == 5 ){
+                frame = this.lastFrame;
+                stop = true;
+            }
+        }
+        else if( this.lastFrame == this.currentFrame ){
+            this.lastFrame = frame;
+            stop = false;
+        }
+
+        // Drawing snake, and if paused draws it at the last frame.
+        if( stop ){
+            gE.snake.Draw( 5 );
+        }
+        else{
+            gE.snake.Draw( snakeFrame );
+        }
+
+        // Draws a black border around the playarea.
+        stroke( 255 );
+        strokeWeight( 2 );
+        noFill();
+        rect( 0, 0, gameSettings.playAreaSize, gameSettings.playAreaSize );
+    
+        popMatrix();
+        noTint();
+
+        if( !gE.pause ){
+            this.lastFrame = currentFrame;
+            lastUpdate = millis();
+        }
+    }
+
+    private void DrawGameScore(){
         float x = gameSettings.GameWindowWidth() / 2;
         float y = gameSettings.playAreaOffsetY / 2;
         int size = int( gameSettings.playAreaOffsetY / 2 ) + 10;
         DrawText( "SCORE: " + nf( gE.score, 3 ), x, y, size, color( 210, 255 - this.fadeOutAlpha ) );
     }
 
-    private void DrawText( String text, float x, float y, int size, color fillColor ){
-        fill( 200 );
-        noStroke();
-        textAlign( CENTER, CENTER );
-        fill( fillColor );
-        textFont( this.mono, size );
-        text( text, x, y );
+    // Creating a countdown for when the game starts.
+    private void DrawCountDown(){
+        if( millis() - this.lastStartUpdate > 30 ){
+            this.countDownSize  = Lerp( this.countDownSize, gameSettings.playAreaSize/4, 0.5f );
+            println( this.countDownSize );
+            this.countDownAlpha = Lerp( this.countDownSize, 255, 0.5f );
+
+            this.lastStartUpdate = millis();
+        }
+        if( millis() - this.lastStartTextUpdate > 1000 ){
+            this.countDown -= 1;
+
+            this.countDownSize = gameSettings.playAreaSize/4 + gameSettings.playAreaSize/3;
+            this.countDownAlpha = 0;
+
+            this.lastStartTextUpdate = millis();
+        }
+
+        if( this.countDown != 0 ){
+            fill( 0, 210 );
+            rect( gameSettings.playAreaOffsetX, gameSettings.playAreaOffsetY, gameSettings.playAreaSize, gameSettings.playAreaSize );
+            DrawText( 
+                str( this.countDown ),
+                float( width / 2 ), float( height / 2 ),
+                int( this.countDownSize ),
+                color( 255, 120, 120, this.countDownAlpha ) );
+        }
     }
 
-    public void DrawGameOver( float clockCycle ){
+    private void DrawGameOver(){
         if( millis() - this.lastUpdate >= this.gameOverWaitingTime ){
             if( this.fadeOutAlpha < 209.9f ){
                 this.fadeOutAlpha = Lerp( this.fadeOutAlpha, 210, 0.2f );
@@ -281,8 +266,13 @@ class PaintEngine{
         }
     }
 
-    private void SpeedUpSnake( int b ){
-        this.acceleration += b;
+    private void DrawText( String text, float x, float y, int size, color fillColor ){
+        fill( 200 );
+        noStroke();
+        textAlign( CENTER, CENTER );
+        fill( fillColor );
+        textFont( this.mono, size );
+        text( text, x, y );
     }
 
     // Return methods

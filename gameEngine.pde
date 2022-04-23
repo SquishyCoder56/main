@@ -1,12 +1,12 @@
 class GameEngine{
     // Engines
-    private PhysicsEngine   phE;
-    private PaintEngine     pE;
+    public PhysicsEngine   phE;
+    public PaintEngine     pE;
 
     // Entities
-    private ArrayList<Entity>           fruits;
-    private ArrayList<Entity_Sprite>    sprites;
-    private Entity_Snake                snake;
+    public  ArrayList<Entity>           fruits;
+    public  ArrayList<Entity_Sprite>    sprites;
+    public  Entity_Snake                snake;
 
     // INFO about play area
     private boolean[][] inhabitedCells;
@@ -20,11 +20,9 @@ class GameEngine{
     private long timeSinceStartup;
 
     // FLAGS
-    private boolean pause               = false;
+    public  boolean pause               = false;
     private boolean gameOver            = false;
     private boolean quit                = false;
-
-    private GameStatus gameStatus = GameStatus.STARTUP;
 
     // GameEngine CONSTRUCTOR
     public GameEngine(){
@@ -63,33 +61,22 @@ class GameEngine{
     */
     public void UpdateGame(){
         // Updates the physics of the snake if the gameStatus is GAME.
-        if( this.gameStatus == GameStatus.GAME ){
+        if( gameStatus == GameStatus.GAME ){
             phE.UpdateEntityPhysics( this.snake, this.fruits, this.pause );
         }
 
         // Drawing all graphics
-        pE.DrawPlayArea();
-        if( gameSettings.LoopMovement() ){ pE.DrawPlayAreaOutOfBounds(); }
-        pE.DrawEntities( this.snake, this.fruits, this.sprites, this.phE.ReturnClockCycle(), this.phE.ReturnSnakeClockCycle(), this.pause );
-        pE.DrawGameScore();
+        pE.DrawGame();
 
         // Draws a countdown on the screen if the gameStatus is STARTUP.
-        if( this.gameStatus == GameStatus.STARTUP ){
-            pE.CountDown();
-            if( millis() - this.timeSinceStartup >= 3000 ){
-                this.gameStatus = GameStatus.GAME;
-            }
+        if( millis() - this.timeSinceStartup >= 3000 ){
+            gameStatus = GameStatus.GAME;
         }
 
         // Checks for if the snakes makes any collisions, then sets the gameState to GAMEOVER.
         if( CheckSnakeCollision() ){
-            this.gameStatus = GameStatus.GAMEOVER;
+            gameStatus = GameStatus.GAMEOVER;
             this.pause      = true;
-        }
-
-        // Draws the game over animation if gameStatus is GAMEOVER
-        if( gameStatus == GameStatus.GAMEOVER ){
-            pE.DrawGameOver( this.phE.ReturnClockCycle() );
         }
 
         // Checks if the snakes collides with any fruits, then adds points and speeds up every

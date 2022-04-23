@@ -193,7 +193,7 @@ class Entity_Snake extends Entity implements IntPhysicsBody{
                 this.tailAlpha = Lerp( this.tailAlpha, 255, 0.1f );
                 tint( #FFBF46, this.tailAlpha );
             }
-            else if( gE.GameOver() ){
+            else if( gameStatus == GameStatus.GAMEOVER ){
                 tint( #CC3363, this.headAlpha ); 
             }
             else{
@@ -208,7 +208,7 @@ class Entity_Snake extends Entity implements IntPhysicsBody{
             }
         }
         
-        if( gE.GameOver() ){
+        if( gameStatus == GameStatus.GAMEOVER ){
             this.headAlpha = Lerp( this.headAlpha, 0, 0.2f);
             tint( #CC3363, this.headAlpha );
         }

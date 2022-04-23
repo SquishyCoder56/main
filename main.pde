@@ -22,7 +22,8 @@ enum ProgramStatus {
     RESTART, GAME;
 }
 
-ProgramStatus pStatus = ProgramStatus.GAME;
+ProgramStatus   pStatus     = ProgramStatus.GAME;
+GameStatus      gameStatus  = GameStatus.STARTUP;
 
 void settings(){
     size( 500, 500 );
@@ -44,10 +45,9 @@ void draw(){
     background( gameSettings.BACKCOLOR );
 
     if( pStatus == ProgramStatus.RESTART ){
-        if( millis() - lastMillis >= 800 ){
-            gE = new GameEngine();
-            pStatus = ProgramStatus.GAME;
-        }
+        gE          = new GameEngine();
+        pStatus     = ProgramStatus.GAME;
+        gameStatus  = GameStatus.STARTUP;
     }
 
 
@@ -74,23 +74,25 @@ float Lerp( float a, float b, float t ){
 }
 
 void keyPressed(){
-    if( key == 'k'  ){
-        gE.AddSnakeBody();
-    }
-    if( key == 'p' ){
-        gE.TogglePause();
-    }
-    if( key == CODED ){
-        if( keyCode == LEFT ){
-            gE.TurnSnakeLeft();
+    if( gameStatus == GameStatus.GAME ){
+        if( key == 'k'  ){
+            gE.AddSnakeBody();
         }
-        if( keyCode == RIGHT ){
-            gE.TurnSnakeRight();
+        if( key == 'p' ){
+            gE.TogglePause();
+        }
+        if( key == CODED ){
+            if( keyCode == LEFT ){
+                gE.TurnSnakeLeft();
+            }
+            if( keyCode == RIGHT ){
+                gE.TurnSnakeRight();
+            }
         }
     }
+
     if( key == 'r' ){
       pStatus = ProgramStatus.RESTART;
       println( "Snake: RESTART!" );
-      lastMillis = millis();
     }
 }
