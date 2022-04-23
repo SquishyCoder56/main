@@ -8,6 +8,10 @@ class PaintEngine{
 
     private int acceleration = 0;
 
+    private int     countDown       = 3;
+    private float   countDownSize   = gameSettings.playAreaSize/4 + gameSettings.playAreaSize/3;
+    private float   countDownAlpha  = 0;
+
     // GameOver variables
     private float   gameOverAlpha       = 0;
     private float   fadeOutAlpha        = 0;
@@ -23,6 +27,8 @@ class PaintEngine{
     private boolean drawGameOverText    = false;
 
     private long    lastUpdate;
+    private long    lastStartTextUpdate;
+    private long    lastStartUpdate;
     private long    lastSnakeUpdate;
     private boolean replay = false;
     private boolean stop    = false;
@@ -33,14 +39,40 @@ class PaintEngine{
         mono            = createFont( "Cafe Matcha.ttf", 40 );
         lastFrame       = 1;
         lastUpdate      = millis();
+        lastStartTextUpdate = millis();
+        lastStartUpdate = millis();
         lastSnakeUpdate = millis();
         frame = 1;
     }
 
     // Creating a countdown for when the game starts.
-    // public void CountDown(){
-    //     if( millis() - lastUpdate )
-    // }
+    public void CountDown(){
+        if( millis() - this.lastStartUpdate > 30 ){
+            this.countDownSize  = Lerp( this.countDownSize, gameSettings.playAreaSize/4, 0.5f );
+            println( this.countDownSize );
+            this.countDownAlpha = Lerp( this.countDownSize, 255, 0.5f );
+
+            this.lastStartUpdate = millis();
+        }
+        if( millis() - this.lastStartTextUpdate > 1000 ){
+            this.countDown -= 1;
+
+            this.countDownSize = gameSettings.playAreaSize/4 + gameSettings.playAreaSize/3;
+            this.countDownAlpha = 0;
+
+            this.lastStartTextUpdate = millis();
+        }
+
+        if( this.countDown != 0 ){
+            fill( 0, 210 );
+            rect( gameSettings.playAreaOffsetX, gameSettings.playAreaOffsetY, gameSettings.playAreaSize, gameSettings.playAreaSize );
+            DrawText( 
+                str( this.countDown ),
+                float( width / 2 ), float( height / 2 ),
+                int( this.countDownSize ),
+                color( 255, 120, 120, this.countDownAlpha ) );
+        }
+    }
 
     //  ----    ----    Drawing Methods     ----    ----
     public void DrawEntities( Entity_Snake snake, ArrayList<Entity> fruits, ArrayList<Entity_Sprite> sprites, float clockCycle, float snakeClockCycle, boolean pause ){      
@@ -236,7 +268,7 @@ class PaintEngine{
         if( this.drawGameOverText ){
             float x = gameSettings.GameWindowWidth() / 2;
             float y = gameSettings.GameWindowSize() / 2;
-
+            
             DrawText( "GAME OVER.", x, 3f*y/4f, int(this.gameOverTextSize), color( 255, 70, 70, this.gameOverAlpha ) );
 
             if( this.drawGameScore ){

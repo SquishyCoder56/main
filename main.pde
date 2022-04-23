@@ -10,10 +10,23 @@ public final FVector MOVENONE   = new FVector(  0f,  0f );
 int countDown = 0;
 long lastMillis;
 boolean restart = false;
+boolean startup = true;
+
+
+// Creating some enumerations to control the status of the game
+boolean runGame = true;
+enum GameStatus {
+    STARTUP, GAME, GAMEOVER;
+}
+enum ProgramStatus {
+    RESTART, GAME;
+}
+
+ProgramStatus pStatus = ProgramStatus.GAME;
 
 void settings(){
-    //size( 700, 700 );
-    fullScreen();
+    size( 500, 500 );
+    //fullScreen();
     noSmooth();
 }
 
@@ -30,12 +43,28 @@ void setup(){
 void draw(){
     background( gameSettings.BACKCOLOR );
 
-    if( millis() - lastMillis >= 800 && restart ){
+    if( pStatus == ProgramStatus.RESTART ){
+        if( millis() - lastMillis >= 800 ){
             gE = new GameEngine();
-            restart = false;
+            pStatus = ProgramStatus.GAME;
+        }
     }
 
-    if( !gE.Quit() ){
+
+    // // Sets start up to false, ie changes game status to game.
+    // if( millis() - lastMillis >= 3000 && startup ){
+    //     startup = false;
+    // }
+
+    // // Detects if the gamestatus is restart, and changes it to startup.
+    // if( millis() - lastMillis >= 800 && restart ){
+    //         gE = new GameEngine();
+    //         restart = false;
+    //         startup = true;
+    // }
+
+    // plays the game.
+    if( runGame ){
         gE.UpdateGame();
     }
 }
@@ -60,7 +89,8 @@ void keyPressed(){
         }
     }
     if( key == 'r' ){
-      restart = true;
+      pStatus = ProgramStatus.RESTART;
+      println( "Snake: RESTART!" );
       lastMillis = millis();
     }
 }

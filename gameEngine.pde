@@ -15,26 +15,35 @@ class GameEngine{
     private int res;
 
     // Start-up settings
-    private int score;
+    private int score       = 0;
+    private boolean startup = true;
+    private long timeSinceStartup;
 
     // FLAGS
     private boolean pause               = false;
     private boolean gameOver            = false;
     private boolean quit                = false;
 
+    private GameStatus gameStatus = GameStatus.STARTUP;
+
     // GameEngine CONSTRUCTOR
     public GameEngine(){
-        this.phE = new PhysicsEngine();              // Initializing engines.
+        // Initializing engines.
+        this.phE = new PhysicsEngine();
         this.pE  = new PaintEngine();
 
-        this.fruits  = new ArrayList<Entity>();       // Initializing entity arrays.
+        // Initializing entity arrays.
+        this.fruits  = new ArrayList<Entity>();
         this.sprites = new ArrayList<Entity_Sprite>();
 
-        this.res = gameSettings.playAreaResolution;  // Retrieving variables from gameSettings.
+        // Retrieving variables from gameSettings.
+        this.res = gameSettings.playAreaResolution;
 
-        this.score = 0;                              // Start-up settings.
+        // Start-up settings.
+        this.timeSinceStartup = millis();
         
-        this.inhabitedCells = new boolean[ this.res ][ this.res ];                 // Makes all cells uninhabited for the beginning.
+        // Makes all cells uninhabited for the beginning.
+        this.inhabitedCells = new boolean[ this.res ][ this.res ];
         for( int y = 0; y < this.res; y++ ){
             for( int x = 0; x < this.res; x++ ){
                 this.inhabitedCells[ x ][ y ] = false;
@@ -48,30 +57,43 @@ class GameEngine{
         }
     }
 
-    public void CountDown(){
-        // pE.CountDown();
-    }
-
     /** 
      Main method for GameEngine. Updates the games engines (physics engine and painengine),
      checks for collisions and refills play area with fruits.
     */
     public void UpdateGame(){
-        phE.UpdateEntityPhysics( this.snake, this.fruits, this.pause );
+        // Updates the physics of the snake if the gameStatus is GAME.
+        if( this.gameStatus == GameStatus.GAME ){
+            phE.UpdateEntityPhysics( this.snake, this.fruits, this.pause );
+        }
+
+        // Drawing all graphics
         pE.DrawPlayArea();
         if( gameSettings.LoopMovement() ){ pE.DrawPlayAreaOutOfBounds(); }
         pE.DrawEntities( this.snake, this.fruits, this.sprites, this.phE.ReturnClockCycle(), this.phE.ReturnSnakeClockCycle(), this.pause );
         pE.DrawGameScore();
 
-        if( this.gameOver ){
-            pE.DrawGameOver( this.phE.ReturnClockCycle() );
+        // Draws a countdown on the screen if the gameStatus is STARTUP.
+        if( this.gameStatus == GameStatus.STARTUP ){
+            pE.CountDown();
+            if( millis() - this.timeSinceStartup >= 3000 ){
+                this.gameStatus = GameStatus.GAME;
+            }
         }
 
+        // Checks for if the snakes makes any collisions, then sets the gameState to GAMEOVER.
         if( CheckSnakeCollision() ){
-            this.gameOver   = true;
+            this.gameStatus = GameStatus.GAMEOVER;
             this.pause      = true;
         }
 
+        // Draws the game over animation if gameStatus is GAMEOVER
+        if( gameStatus == GameStatus.GAMEOVER ){
+            pE.DrawGameOver( this.phE.ReturnClockCycle() );
+        }
+
+        // Checks if the snakes collides with any fruits, then adds points and speeds up every
+        // five fruits.
         if( phE.CheckFruitCollision( snake, fruits ) ){
             this.score += 10;
             if( this.score % 50 == 0 ){
@@ -81,6 +103,7 @@ class GameEngine{
             this.snake.AddToSnakeBody();
         }
 
+        // Restocks all the fruits if theyre less than specified in gameSettings.
         if( fruits.size() < gameSettings.FruitsPerPlayArea() ){
             this.fruits.add( MakeFruit() );
         }
